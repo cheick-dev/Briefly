@@ -6,12 +6,7 @@ import path from "path";
 import mammoth from "mammoth";
 import * as XLSX from "xlsx";
 
-import {
-	extractTextFromPDF,
-	processDocx,
-	processTxt,
-	processXlsx,
-} from "@/actions";
+import { extractTextFromPDF } from "@/actions";
 import { generateContent } from "@/actions/gemini";
 
 const docContext = `Ce contenu provient d'un document. Résume les sections importantes en mettant en avant les points clés et les idées principales. Si le document contient plusieurs chapitres ou sections, présente une vue d'ensemble équilibrée. Fournis un titre pertinent pour le résumé basé sur le thème principal du document. Si possible, identifie le type de document (rapport, essai académique, article) pour guider la structure du résumé. Ignore les détails insignifiants ou répétitifs. Si le document est long, limite le résumé à 200 mots par section principale.`;
@@ -60,6 +55,7 @@ export async function POST(req: NextRequest) {
 		const fileExtension = path.extname(file.name).toLowerCase();
 
 		let extractedText: string | null = null;
+		const readFile = await fs.readFile(filePath);
 
 		switch (fileExtension) {
 			case ".txt":
@@ -67,6 +63,7 @@ export async function POST(req: NextRequest) {
 				break;
 			case ".docx":
 				extractedText = await processDocx(filePath);
+
 				break;
 			case ".xlsx":
 				extractedText = await processXlsx(filePath);
@@ -102,3 +99,25 @@ export async function POST(req: NextRequest) {
 		);
 	}
 }
+
+// Fonction pour traiter les fichiers texte brut
+const processTxt = async (filePath: string) => {
+	const content = await fs.readFile(filePath, "utf-8");
+	return content;
+};
+
+// Fonction pour traiter les fichiers Word (.docx)
+const processDocx = async (filePath: string) => {
+	const buffer = await fs.readFile(filePath);
+	const { value: text } = await mammoth.extractRawText({ buffer });
+	return text;
+};
+
+// Fonction pour traiter les fichiers Excel (.xlsx)
+const processXlsx = async (filePath: string) => {
+	const workbook = XLSX.readFile(filePath);
+	const sheetName = workbook.SheetNames[0]; // Lis la première feuille
+	const sheet = workbook.Sheets[sheetName];
+	const data = XLSX.utils.sheet_to_json(sheet);
+	return JSON.stringify(data, null, 2); // Convertit en texte JSON formaté
+};
