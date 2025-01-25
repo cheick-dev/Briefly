@@ -169,26 +169,25 @@ export default function DashboardPage() {
 					<h2 className="text-2xl font-bold mb-4 text-center">
 						Résumés récents
 					</h2>
-					<>
-						{summaries.length !== 0 ? (
-							<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-								{summaries.map((summary) => (
-									<SummaryCard
-										id={summary.id}
-										key={summary.id}
-										title={summary.title}
-										content={summary.content}
-										createdAt={summary.createdAt}
-										sourceType={summary.sourceType}
-									/>
-								))}
-							</div>
-						) : (
-							<p className="text-2xl font-semibold text-center text-red-500">
-								Pas de résumé trouvé
-							</p>
-						)}
-					</>
+
+					{summaries.length !== 0 ? (
+						<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+							{summaries.map((summary) => (
+								<SummaryCard
+									id={summary.id}
+									key={summary.id}
+									title={summary.title}
+									content={summary.content}
+									createdAt={summary.createdAt}
+									sourceType={summary.sourceType}
+								/>
+							))}
+						</div>
+					) : (
+						<p className="text-2xl font-semibold text-center text-red-500">
+							Pas de résumé trouvé
+						</p>
+					)}
 				</div>
 			</div>
 		</div>

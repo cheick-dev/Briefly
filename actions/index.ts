@@ -13,7 +13,6 @@ export async function extractTextFromPDF(file: File) {
 
 			pdfParser.on("pdfParser_dataReady", (pdfData: any) => {
 				const formattedText = formatText(pdfData);
-
 				resolve(formattedText);
 			});
 

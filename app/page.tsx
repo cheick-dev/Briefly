@@ -1,16 +1,6 @@
 import Link from "next/link";
 import { Book } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-	CallToAction,
-	Footer,
-	Header,
-	HeroSection,
-	HowItWorks,
-	KeyFeatures,
-	Showcase,
-	Testimonials,
-} from "@/components/landing";
 
 export default function Home() {
 	return (

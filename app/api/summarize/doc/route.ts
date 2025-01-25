@@ -3,27 +3,27 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
-import { extractTextFromPDF } from "@/actions";
-import { generateContent } from "@/actions/gemini";
-
 import mammoth from "mammoth";
 import * as XLSX from "xlsx";
 
+import { extractTextFromPDF } from "@/actions";
+import { generateContent } from "@/actions/gemini";
+
 // Fonction pour traiter les fichiers texte brut
-export async function processTxt(filePath: string) {
+async function processTxt(filePath: string) {
 	const content = await fs.readFile(filePath, "utf-8");
 	return content;
 }
 
 // Fonction pour traiter les fichiers Word (.docx)
-export async function processDocx(filePath: string) {
+async function processDocx(filePath: string) {
 	const buffer = await fs.readFile(filePath);
 	const { value: text } = await mammoth.extractRawText({ buffer });
 	return text;
 }
 
 // Fonction pour traiter les fichiers Excel (.xlsx)
-export async function processXlsx(filePath: string) {
+async function processXlsx(filePath: string) {
 	const workbook = XLSX.readFile(filePath);
 	const sheetName = workbook.SheetNames[0]; // Lis la première feuille
 	const sheet = workbook.Sheets[sheetName];

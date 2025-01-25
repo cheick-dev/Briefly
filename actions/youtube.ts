@@ -1,4 +1,3 @@
-import { extractVideoId } from "@/utils";
 import { YoutubeTranscript } from "youtube-transcript";
 
 export async function getVideoTranscription(videoUrl: string) {
