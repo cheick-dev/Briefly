@@ -1,4 +1,7 @@
 import PDFParser from "pdf2json";
+import { promises as fs } from "fs";
+import mammoth from "mammoth";
+import * as XLSX from "xlsx";
 
 export async function extractTextFromPDF(file: File) {
 	const fileBuffer = Buffer.from(await file.arrayBuffer());
@@ -76,4 +79,26 @@ function formatText(pdfData: any): string {
 	});
 
 	return formattedText;
+}
+
+// Fonction pour traiter les fichiers texte brut
+export async function processTxt(filePath: string) {
+	const content = await fs.readFile(filePath, "utf-8");
+	return content;
+}
+
+// Fonction pour traiter les fichiers Word (.docx)
+export async function processDocx(filePath: string) {
+	const buffer = await fs.readFile(filePath);
+	const { value: text } = await mammoth.extractRawText({ buffer });
+	return text;
+}
+
+// Fonction pour traiter les fichiers Excel (.xlsx)
+export async function processXlsx(filePath: string) {
+	const workbook = XLSX.readFile(filePath);
+	const sheetName = workbook.SheetNames[0]; // Lis la première feuille
+	const sheet = workbook.Sheets[sheetName];
+	const data = XLSX.utils.sheet_to_json(sheet);
+	return JSON.stringify(data, null, 2); // Convertit en texte JSON formaté
 }
