@@ -18,12 +18,12 @@ const ALLOWED_MIME_TYPES = [
 	"application/vnd.openxmlformats-officedocument.wordprocessingml.document", // DOCX
 ];
 
-const UPLOADS_DIR = path.join(process.cwd(), "uploads");
+// const UPLOADS_DIR = path.join(process.cwd(), "uploads");
 
 export async function POST(req: NextRequest) {
 	try {
 		// Vérifie si le dossier "uploads" existe, sinon le créer
-		await fs.mkdir(UPLOADS_DIR, { recursive: true });
+		// await fs.mkdir(UPLOADS_DIR, { recursive: true });
 
 		const formData = await req.formData();
 		const file = formData.get("file") as File | null;
@@ -43,30 +43,29 @@ export async function POST(req: NextRequest) {
 			);
 		}
 
-		// Génère un nom unique pour le fichier
-		const fileName = `${Date.now()}-${file.name}`;
-		const filePath = path.join(UPLOADS_DIR, fileName);
+		// // Génère un nom unique pour le fichier
+		// const fileName = `${Date.now()}-${file.name}`;
+		// const filePath = path.join(UPLOADS_DIR, fileName);
 
-		// Lis le contenu du fichier et l'écrit sur le serveur
-		const buffer = Buffer.from(await file.arrayBuffer());
-		await fs.writeFile(filePath, buffer);
+		// // Lis le contenu du fichier et l'écrit sur le serveur
+		// const buffer = Buffer.from(await file.arrayBuffer());
+		// await fs.writeFile(filePath, buffer);
 
 		// Extraction de l'extension du fichier
 		const fileExtension = path.extname(file.name).toLowerCase();
 
 		let extractedText: string | null = null;
-		const readFile = await fs.readFile(filePath);
 
 		switch (fileExtension) {
 			case ".txt":
-				extractedText = await processTxt(filePath);
+				extractedText = await processTxt(file);
 				break;
 			case ".docx":
-				extractedText = await processDocx(filePath);
+				extractedText = await processDocx(file);
 
 				break;
 			case ".xlsx":
-				extractedText = await processXlsx(filePath);
+				extractedText = await processXlsx(file);
 				break;
 			case ".pdf":
 				// Tu peux réutiliser ta logique PDF ici
@@ -79,7 +78,7 @@ export async function POST(req: NextRequest) {
 				);
 		}
 		// Supprime le fichier temporaire après traitement
-		await fs.unlink(filePath);
+		// await fs.unlink(filePath);
 
 		const { content, title } = await generateContent(
 			extractedText,
@@ -100,24 +99,48 @@ export async function POST(req: NextRequest) {
 	}
 }
 
-// Fonction pour traiter les fichiers texte brut
-const processTxt = async (filePath: string) => {
-	const content = await fs.readFile(filePath, "utf-8");
+// // Fonction pour traiter les fichiers texte brut
+// const processTxt = async (filePath: string) => {
+// 	const content = await fs.readFile(filePath, "utf-8");
+// 	return content;
+// };
+
+// // Fonction pour traiter les fichiers Word (.docx)
+// const processDocx = async (filePath: string) => {
+// 	const buffer = await fs.readFile(filePath);
+// 	const { value: text } = await mammoth.extractRawText({ buffer });
+// 	return text;
+// };
+
+// // Fonction pour traiter les fichiers Excel (.xlsx)
+// const processXlsx = async (filePath: string) => {
+// 	const workbook = XLSX.readFile(filePath);
+// 	const sheetName = workbook.SheetNames[0]; // Lis la première feuille
+// 	const sheet = workbook.Sheets[sheetName];
+// 	const data = XLSX.utils.sheet_to_json(sheet);
+// 	return JSON.stringify(data, null, 2); // Convertit en texte JSON formaté
+// };
+
+const processTxt = async (file: File) => {
+	const content = await file.text(); // Utilise la méthode text() pour lire le contenu
 	return content;
 };
 
 // Fonction pour traiter les fichiers Word (.docx)
-const processDocx = async (filePath: string) => {
-	const buffer = await fs.readFile(filePath);
+const processDocx = async (file: File) => {
+	const arrayBuffer = await file.arrayBuffer();
+	const buffer = Buffer.from(arrayBuffer);
 	const { value: text } = await mammoth.extractRawText({ buffer });
 	return text;
 };
 
 // Fonction pour traiter les fichiers Excel (.xlsx)
-const processXlsx = async (filePath: string) => {
-	const workbook = XLSX.readFile(filePath);
-	const sheetName = workbook.SheetNames[0]; // Lis la première feuille
+const processXlsx = async (file: File) => {
+	const arrayBuffer = await file.arrayBuffer();
+	const buffer = Buffer.from(arrayBuffer);
+	const workbook = XLSX.read(buffer);
+	const sheetName = workbook.SheetNames[0];
 	const sheet = workbook.Sheets[sheetName];
 	const data = XLSX.utils.sheet_to_json(sheet);
-	return JSON.stringify(data, null, 2); // Convertit en texte JSON formaté
+	return JSON.stringify(data, null, 2);
 };
