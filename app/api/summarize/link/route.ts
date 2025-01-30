@@ -2,11 +2,12 @@ import { generateContent } from "@/actions/gemini";
 import { getVideoTranscription } from "@/actions/youtube";
 import { NextRequest, NextResponse } from "next/server";
 
-const linkContext = `Le texte suivant est une transcription d'une vidéo YouTube. Résume les points clés du contenu parlé, en respectant le ton et l'intention du créateur. Fournis un titre pour le résumé qui reflète le sujet principal de la vidéo. Identifie les idées importantes, en particulier si elles sont explicatives, éducatives ou narratives. Si le domaine de la vidéo est connu (e.g., tutoriel, conférence, vlog), ajuste le résumé pour refléter ce style. Pour une vidéo longue, structure le résumé en plusieurs paragraphes équilibrés. Formate le résumé en markdown pour faciliter sa lecture et l'utilisation dans d'autres applications.`;
+const linkContext =
+	"Analyse et résume le texte provenant d'un lien youtube suivant en identifiant les points clés, les informations principales et les idées importantes.";
 
 export async function POST(req: NextRequest) {
 	try {
-		const link = await req.json();
+		const { link, niveau } = await req.json();
 
 		if (!link) {
 			return NextResponse.json(
@@ -16,7 +17,11 @@ export async function POST(req: NextRequest) {
 		}
 
 		const data = await getVideoTranscription(link);
-		const { content, title } = await generateContent(data, linkContext);
+		const { content, title } = await generateContent(
+			data,
+			linkContext,
+			niveau
+		);
 
 		return NextResponse.json({
 			message: "Lien uploadé avec succès",

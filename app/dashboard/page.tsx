@@ -10,12 +10,21 @@ import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { useSummaryStore } from "@/store";
 
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+
 export default function DashboardPage() {
 	const [isGenerating, setIsGenerating] = useState(false);
 	const { toast } = useToast();
 	const [link, setLink] = useState("");
 	const [textContent, setTextContent] = useState("");
 	const { addSummary, summaries } = useSummaryStore();
+	const [niveau, setNiveau] = useState("court");
 
 	const handleUpload = async (content: FormData) => {
 		setIsGenerating(true);
@@ -61,11 +70,11 @@ export default function DashboardPage() {
 				trigger === "link"
 					? await fetch("/api/summarize/link", {
 							method: "POST",
-							body: JSON.stringify(link),
+							body: JSON.stringify({ link, niveau }),
 					  })
 					: await fetch("/api/summarize/text", {
 							method: "POST",
-							body: JSON.stringify(textContent),
+							body: JSON.stringify({ textContent, niveau }),
 					  });
 
 			if (!response.ok)
@@ -116,17 +125,37 @@ export default function DashboardPage() {
 
 				<Card className="p-6 ">
 					<Tabs defaultValue="upload">
-						<TabsList>
-							<TabsTrigger value="upload">
-								Charger du contenu
-							</TabsTrigger>
-							<TabsTrigger value="paste">
-								Coller du texte brute
-							</TabsTrigger>
-							<TabsTrigger value="link">Lien youtube</TabsTrigger>
-						</TabsList>
+						<div className="flex justify-between">
+							<TabsList>
+								<TabsTrigger value="upload">
+									Charger du contenu
+								</TabsTrigger>
+								<TabsTrigger value="paste">
+									Coller du texte brute
+								</TabsTrigger>
+								<TabsTrigger value="link">
+									Lien youtube
+								</TabsTrigger>
+							</TabsList>
+							<Select
+								onValueChange={(value) => setNiveau(value)}
+								defaultValue={niveau}
+							>
+								<SelectTrigger className="w-[180px]">
+									<SelectValue placeholder="Type de résumé" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="court">Court</SelectItem>
+									<SelectItem value="moyen">Moyen</SelectItem>
+									<SelectItem value="long">Long</SelectItem>
+								</SelectContent>
+							</Select>
+						</div>
 						<TabsContent value="upload" className="mt-4">
-							<FileUploader onUpload={handleUpload} />
+							<FileUploader
+								onUpload={handleUpload}
+								niveau={niveau}
+							/>
 						</TabsContent>
 						<TabsContent value="paste" className="mt-4">
 							<textarea

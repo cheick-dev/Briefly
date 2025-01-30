@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface FileUploaderProps {
 	onUpload: (content: FormData) => Promise<void>;
+	niveau: string;
 }
 
 const ALLOWED_MIME_TYPES = [
@@ -18,7 +19,7 @@ const ALLOWED_MIME_TYPES = [
 	"application/vnd.openxmlformats-officedocument.wordprocessingml.document", // DOCX
 ];
 
-export function FileUploader({ onUpload }: FileUploaderProps) {
+export function FileUploader({ onUpload, niveau }: FileUploaderProps) {
 	const [isUploading, setIsUploading] = useState(false);
 	const [progress, setProgress] = useState(0);
 	const { toast } = useToast();
@@ -39,6 +40,7 @@ export function FileUploader({ onUpload }: FileUploaderProps) {
 			setProgress(0);
 			const formData = new FormData();
 			formData.append("file", file);
+			formData.append("niveau", niveau);
 
 			try {
 				await onUpload(formData);
@@ -107,29 +109,3 @@ export function FileUploader({ onUpload }: FileUploaderProps) {
 		</div>
 	);
 }
-
-// async function readFileContent(
-// 	file: File,
-// 	onProgress: (progress: number) => void
-// ): Promise<string> {
-// 	return new Promise((resolve, reject) => {
-// 		const reader = new FileReader();
-
-// 		reader.onload = (event) => {
-// 			resolve(event.target?.result as string);
-// 		};
-
-// 		reader.onerror = () => {
-// 			reject(new Error("Failed to read file"));
-// 		};
-
-// 		reader.onprogress = (event) => {
-// 			if (event.lengthComputable) {
-// 				const progress = (event.loaded / event.total) * 100;
-// 				onProgress(progress);
-// 			}
-// 		};
-
-// 		reader.readAsText(file);
-// 	});
-// }
