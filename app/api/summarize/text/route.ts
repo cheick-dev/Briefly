@@ -1,7 +1,7 @@
 import { generateContent } from "@/actions/gemini";
 import { NextRequest, NextResponse } from "next/server";
 
-const textContentContext = `Analyse et résume le texte brut suivant en identifiant les points clés, les informations principales et les idées importantes. Le résumé doit être clair, organisé et concis, tout en maintenant une fluidité dans l'écriture. Fournis un titre pertinent pour le résumé qui reflète le contenu principal. Limite le résumé à 150 mots, sauf indication contraire. Si le texte est technique ou contient des termes spécifiques, préserve la précision des termes tout en simplifiant la compréhension globale.`;
+const textContentContext = `Analyse et résume le texte brut suivant en identifiant les points clés, les informations principales et les idées importantes. Le résumé doit être clair, organisé et concis, tout en maintenant une fluidité dans l'écriture. Fournis un titre pertinent pour le résumé qui reflète le contenu principal. Limite le résumé à 150 mots, sauf indication contraire. Si le texte est technique ou contient des termes spécifiques, préserve la précision des termes tout en simplifiant la compréhension globale. Formate le résumé en markdown pour faciliter sa lecture et l'utilisation dans d'autres applications.`;
 
 export async function POST(req: NextRequest) {
 	try {

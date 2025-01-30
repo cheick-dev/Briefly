@@ -2,7 +2,7 @@ import { generateContent } from "@/actions/gemini";
 import { getVideoTranscription } from "@/actions/youtube";
 import { NextRequest, NextResponse } from "next/server";
 
-const linkContext = `Le texte suivant est une transcription d'une vidéo YouTube. Résume les points clés du contenu parlé, en respectant le ton et l'intention du créateur. Fournis un titre pour le résumé qui reflète le sujet principal de la vidéo. Identifie les idées importantes, en particulier si elles sont explicatives, éducatives ou narratives. Si le domaine de la vidéo est connu (e.g., tutoriel, conférence, vlog), ajuste le résumé pour refléter ce style. Pour une vidéo longue, structure le résumé en plusieurs paragraphes équilibrés.`;
+const linkContext = `Le texte suivant est une transcription d'une vidéo YouTube. Résume les points clés du contenu parlé, en respectant le ton et l'intention du créateur. Fournis un titre pour le résumé qui reflète le sujet principal de la vidéo. Identifie les idées importantes, en particulier si elles sont explicatives, éducatives ou narratives. Si le domaine de la vidéo est connu (e.g., tutoriel, conférence, vlog), ajuste le résumé pour refléter ce style. Pour une vidéo longue, structure le résumé en plusieurs paragraphes équilibrés. Formate le résumé en markdown pour faciliter sa lecture et l'utilisation dans d'autres applications.`;
 
 export async function POST(req: NextRequest) {
 	try {

@@ -25,10 +25,10 @@ export const generateContent = async (prompt: string, context: string) => {
       `;
 	try {
 		const result = await model.generateContent(newPrompt);
-		const title = cleanMarkdown(result.response.text().split("\n")[0]);
+		const title = result.response.text().split("\n")[0];
 		return {
 			title,
-			content: cleanMarkdown(result.response.text().replace(title, "")),
+			content: result.response.text().replace(title, ""),
 		};
 	} catch (error) {
 		console.error("Erreur lors de la génération avec Gemini:", error);

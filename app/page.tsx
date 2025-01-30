@@ -18,7 +18,7 @@ export default function Home() {
 							résumés instantanés.
 						</span>
 					</h1>
-					<p className="text-lg text-muted-foreground sm:text-xl">
+					<div className="text-lg text-muted-foreground sm:text-xl">
 						<TextLoop className="text-primary text-2xl">
 							<span>Articles ?</span>
 							<span>Documents(PDFs, Word, Excel et Txt) ?</span>
@@ -27,7 +27,7 @@ export default function Home() {
 						<br />
 						Briefly résume ces contenus en un seul clic grâce à
 						l'IA.
-					</p>
+					</div>
 					<div className="flex justify-center gap-4">
 						<Magnetic>
 							<Button asChild size="lg">

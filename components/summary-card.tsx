@@ -1,14 +1,22 @@
 "use client";
-import {
-	Disclosure,
-	DisclosureContent,
-	DisclosureTrigger,
-} from "@/components/ui/disclosure";
+
 import { Summary } from "@/store";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Button } from "./ui/button";
-import { truncateText } from "@/utils";
+import { cleanMarkdown, truncateText } from "@/utils";
+import { useState } from "react";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
+import { copyToClipboard, downloadAsPDF } from "@/lib/downloadAs";
+import { useToast } from "@/hooks/use-toast";
 
 export function SummaryCard({
 	title,
@@ -16,26 +24,58 @@ export function SummaryCard({
 	createdAt,
 	sourceType,
 }: Summary) {
+	const { toast } = useToast();
 	return (
-		<Disclosure className="w-[90%] mx-auto">
-			<DisclosureTrigger>
+		<Dialog>
+			<DialogTrigger>
 				<Button variant={"outline"} className="w-full font-bold px-2">
-					{truncateText(title, 40)}
+					{truncateText(cleanMarkdown(title), 30)}
 				</Button>
-			</DisclosureTrigger>
-			<DisclosureContent>
+			</DialogTrigger>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>
+						{truncateText(cleanMarkdown(title), 40)}
+					</DialogTitle>
+					<DialogDescription>
+						{`${formatDistanceToNow(createdAt, {
+							addSuffix: true,
+							locale: fr,
+						})} • ${sourceType} .`}
+					</DialogDescription>
+				</DialogHeader>
 				<div className="overflow-hidden p-3">
 					<div className="pt-1 text-base">
-						<p className="text-muted-foreground mb-2">
-							{`${formatDistanceToNow(createdAt, {
-								addSuffix: true,
-								locale: fr,
-							})} • ${sourceType} .`}
-						</p>
 						<div>{truncateText(content, 350)}</div>
 					</div>
 				</div>
-			</DisclosureContent>
-		</Disclosure>
+				<DialogFooter>
+					<div className="w-full flex justify-around">
+						<Button
+							variant={"outline"}
+							className="font-bold px-2 mt-2"
+							onClick={() =>
+								downloadAsPDF(content, cleanMarkdown(title))
+							}
+						>
+							Télécharger en PDF
+						</Button>
+						<Button
+							variant={"outline"}
+							className="font-bold px-2 mt-2"
+							onClick={async () => {
+								const res = await copyToClipboard(content);
+								toast({
+									title: res.title,
+									description: res.description,
+								});
+							}}
+						>
+							Copier
+						</Button>
+					</div>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
 	);
 }

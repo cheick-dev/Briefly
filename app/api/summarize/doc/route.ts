@@ -9,7 +9,7 @@ import * as XLSX from "xlsx";
 import { extractTextFromPDF } from "@/actions";
 import { generateContent } from "@/actions/gemini";
 
-const docContext = `Ce contenu provient d'un document. Résume les sections importantes en mettant en avant les points clés et les idées principales. Si le document contient plusieurs chapitres ou sections, présente une vue d'ensemble équilibrée. Fournis un titre pertinent pour le résumé basé sur le thème principal du document. Si possible, identifie le type de document (rapport, essai académique, article) pour guider la structure du résumé. Ignore les détails insignifiants ou répétitifs. Si le document est long, limite le résumé à 200 mots par section principale.`;
+const docContext = `Ce contenu provient d'un document. Résume les sections importantes en mettant en avant les points clés et les idées principales. Si le document contient plusieurs chapitres ou sections, présente une vue d'ensemble équilibrée. Fournis un titre pertinent pour le résumé basé sur le thème principal du document. Si possible, identifie le type de document (rapport, essai académique, article) pour guider la structure du résumé. Ignore les détails insignifiants ou répétitifs. Si le document est long, limite le résumé à 200 mots par section principale. Formate le résumé en markdown pour faciliter sa lecture et l'utilisation dans d'autres applications.`;
 
 // Définir les formats de fichiers autorisés
 const ALLOWED_MIME_TYPES = [
@@ -98,28 +98,6 @@ export async function POST(req: NextRequest) {
 		);
 	}
 }
-
-// // Fonction pour traiter les fichiers texte brut
-// const processTxt = async (filePath: string) => {
-// 	const content = await fs.readFile(filePath, "utf-8");
-// 	return content;
-// };
-
-// // Fonction pour traiter les fichiers Word (.docx)
-// const processDocx = async (filePath: string) => {
-// 	const buffer = await fs.readFile(filePath);
-// 	const { value: text } = await mammoth.extractRawText({ buffer });
-// 	return text;
-// };
-
-// // Fonction pour traiter les fichiers Excel (.xlsx)
-// const processXlsx = async (filePath: string) => {
-// 	const workbook = XLSX.readFile(filePath);
-// 	const sheetName = workbook.SheetNames[0]; // Lis la première feuille
-// 	const sheet = workbook.Sheets[sheetName];
-// 	const data = XLSX.utils.sheet_to_json(sheet);
-// 	return JSON.stringify(data, null, 2); // Convertit en texte JSON formaté
-// };
 
 const processTxt = async (file: File) => {
 	const content = await file.text(); // Utilise la méthode text() pour lire le contenu
