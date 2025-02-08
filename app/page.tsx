@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Book } from "lucide-react";
+import { Book, ArrowRight, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TextLoop } from "@/components/ui/text-loop";
 import { Magnetic } from "@/components/ui/magnetic";
@@ -9,8 +9,10 @@ export default function Home() {
 		<>
 			<div className="flex min-h-[calc(100vh-4rem)] container mx-auto flex-col items-center justify-center px-4 text-center">
 				<div className="max-w-4xl space-y-6">
-					<div className="flex justify-center">
+					<div className="flex justify-center gap-10">
 						<Book className="h-16 w-16" />
+						<ArrowRight className="h-16 w-16" />
+						<FileText className="h-16 w-16" />
 					</div>
 					<h1 className="text-3xl font-bold sm:text-6xl">
 						Transformez vos contenus en{" "}

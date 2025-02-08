@@ -14,6 +14,7 @@ interface FileUploaderProps {
 }
 
 const ALLOWED_MIME_TYPES = [
+	"text/plain",
 	"application/pdf",
 	"application/msword",
 	"application/vnd.openxmlformats-officedocument.wordprocessingml.document", // DOCX

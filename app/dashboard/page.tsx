@@ -37,6 +37,7 @@ export default function DashboardPage() {
 			if (!response.ok) throw new Error("Failed to generate summary");
 
 			const data = await response.json();
+			console.log(data);
 
 			addSummary({
 				content: data.content,
@@ -117,13 +118,15 @@ export default function DashboardPage() {
 		<div className="container mx-auto py-8">
 			<div className="grid gap-8">
 				<div>
-					<h1 className="text-3xl font-bold mb-2">Dashboard</h1>
-					<p className="text-muted-foreground">
+					<h1 className="text-4xl font-bold mb-2 text-center">
+						Briefly
+					</h1>
+					<p className="text-muted-foreground text-center">
 						Charge et génère des résumés automatisés avec l'IA.
 					</p>
 				</div>
 
-				<Card className="p-6 ">
+				<Card className="p-6 min-h-[350px]">
 					<Tabs defaultValue="upload">
 						<div className="flex justify-between">
 							<TabsList>

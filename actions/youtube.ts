@@ -4,7 +4,6 @@ export async function getVideoTranscription(videoUrl: string) {
 	try {
 		const yt = await YoutubeTranscript.fetchTranscript(videoUrl);
 		const transcript = yt.map((item) => item.text).join(" ");
-		// console.log(transcript);
 
 		return transcript;
 	} catch (error) {

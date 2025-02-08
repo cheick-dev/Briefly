@@ -1,24 +1,34 @@
 export const dynamic = "force-dynamic";
 
+import fs, { unlink } from "fs/promises";
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
-import mammoth from "mammoth";
-import * as XLSX from "xlsx";
 
-import { extractTextFromPDF } from "@/actions";
+import {
+	convertExcelToPdf,
+	convertTxtToPdf,
+	convertWordToPdf,
+} from "@/actions";
 import { generateContent } from "@/actions/gemini";
+import { summarizePdf } from "@/actions/summarizer";
 
 const docContext =
-	"Analyse et résume le texte provenant d'un document suivant en identifiant les points clés, les informations principales et les idées importantes.";
+	"Analyse et résume le texte provenant d'un document, identifiant les points clés, les informations principales et les idées importantes.";
 
 const ALLOWED_MIME_TYPES = [
+	"text/plain",
 	"application/pdf",
 	"application/msword",
 	"application/vnd.openxmlformats-officedocument.wordprocessingml.document", // DOCX
 ];
 
+const UPLOADS_DIR = path.join(process.cwd(), "uploads");
+
 export async function POST(req: NextRequest) {
 	try {
+		// Vérifie si le dossier "uploads" existe, sinon le créer
+		await fs.mkdir(UPLOADS_DIR, { recursive: true });
+
 		const formData = await req.formData();
 		const file = formData.get("file") as File | null;
 		const niveau = formData.get("niveau") as string;
@@ -38,6 +48,14 @@ export async function POST(req: NextRequest) {
 			);
 		}
 
+		// Génère un nom unique pour le fichier
+		const fileName = `${Date.now()}-${file.name}`;
+		const filePath = path.join(UPLOADS_DIR, fileName);
+
+		// Lis le contenu du fichier et l'écrit sur le serveur
+		const buffer = Buffer.from(await file.arrayBuffer());
+		await fs.writeFile(filePath, buffer as unknown as string);
+
 		// Extraction de l'extension du fichier
 		const fileExtension = path.extname(file.name).toLowerCase();
 
@@ -45,18 +63,32 @@ export async function POST(req: NextRequest) {
 
 		switch (fileExtension) {
 			case ".txt":
-				extractedText = await processTxt(file);
+				extractedText = await summarizePdf(
+					await convertTxtToPdf(filePath, UPLOADS_DIR),
+					docContext,
+					niveau
+				);
 				break;
 			case ".docx":
-				extractedText = await processDocx(file);
-
+				extractedText = await summarizePdf(
+					await convertWordToPdf(filePath, UPLOADS_DIR),
+					docContext,
+					niveau
+				);
 				break;
 			case ".xlsx":
-				extractedText = await processXlsx(file);
+				extractedText = await summarizePdf(
+					await convertExcelToPdf(filePath, UPLOADS_DIR),
+					docContext,
+					niveau
+				);
 				break;
 			case ".pdf":
-				// Tu peux réutiliser ta logique PDF ici
-				extractedText = await extractTextFromPDF(file);
+				extractedText = await summarizePdf(
+					filePath,
+					docContext,
+					niveau
+				);
 				break;
 			default:
 				return NextResponse.json(
@@ -65,17 +97,25 @@ export async function POST(req: NextRequest) {
 				);
 		}
 
-		const { content, title } = await generateContent(
-			extractedText,
-			docContext,
-			niveau
-		);
+		if (extractedText && extractedText.length > 0) {
+			const { content, title } = await generateContent(extractedText);
+			await unlink(`${UPLOADS_DIR}/output.pdf`);
 
-		return NextResponse.json({
-			message: "Fichier uploadé avec succès",
-			content,
-			title,
-		});
+			return NextResponse.json({
+				message: "Fichier uploadé avec succès",
+				content,
+				title,
+			});
+		}
+
+		return NextResponse.json(
+			{
+				message: "Aucun texte trouvé",
+				content: null,
+				title: null,
+			},
+			{ status: 400 }
+		);
 	} catch (error) {
 		console.error("Erreur lors de l'upload :", error);
 		return NextResponse.json(
@@ -84,27 +124,3 @@ export async function POST(req: NextRequest) {
 		);
 	}
 }
-
-const processTxt = async (file: File) => {
-	const content = await file.text(); // Utilise la méthode text() pour lire le contenu
-	return content;
-};
-
-// Fonction pour traiter les fichiers Word (.docx)
-const processDocx = async (file: File) => {
-	const arrayBuffer = await file.arrayBuffer();
-	const buffer = Buffer.from(arrayBuffer);
-	const { value: text } = await mammoth.extractRawText({ buffer });
-	return text;
-};
-
-// Fonction pour traiter les fichiers Excel (.xlsx)
-const processXlsx = async (file: File) => {
-	const arrayBuffer = await file.arrayBuffer();
-	const buffer = Buffer.from(arrayBuffer);
-	const workbook = XLSX.read(buffer);
-	const sheetName = workbook.SheetNames[0];
-	const sheet = workbook.Sheets[sheetName];
-	const data = XLSX.utils.sheet_to_json(sheet);
-	return JSON.stringify(data, null, 2);
-};

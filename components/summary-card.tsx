@@ -15,19 +15,21 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
-import { copyToClipboard, downloadAsPDF } from "@/lib/downloadAs";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 export function SummaryCard({
 	title,
 	content,
 	createdAt,
 	sourceType,
+	id,
 }: Summary) {
 	const { toast } = useToast();
+	const router = useRouter();
 	return (
 		<Dialog>
-			<DialogTrigger>
+			<DialogTrigger asChild>
 				<Button variant={"outline"} className="w-full font-bold px-2">
 					{truncateText(cleanMarkdown(title), 30)}
 				</Button>
@@ -54,24 +56,9 @@ export function SummaryCard({
 						<Button
 							variant={"outline"}
 							className="font-bold px-2 mt-2"
-							onClick={() =>
-								downloadAsPDF(content, cleanMarkdown(title))
-							}
+							onClick={() => router.push(`/dashboard/${id}`)}
 						>
-							Télécharger en PDF
-						</Button>
-						<Button
-							variant={"outline"}
-							className="font-bold px-2 mt-2"
-							onClick={async () => {
-								const res = await copyToClipboard(content);
-								toast({
-									title: res.title,
-									description: res.description,
-								});
-							}}
-						>
-							Copier
+							Voir plus
 						</Button>
 					</div>
 				</DialogFooter>

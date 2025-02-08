@@ -1,79 +1,64 @@
-import PDFParser from "pdf2json";
+import * as XLSX from "xlsx";
+import mammoth from "mammoth";
+import puppeteer from "puppeteer";
+import fs, { unlink } from "fs";
 
-export async function extractTextFromPDF(file: File) {
-	const fileBuffer = Buffer.from(await file.arrayBuffer());
-	const pdfParser = new PDFParser();
+export async function convertWordToPdf(
+	wordPath: string,
+	outputPath: string
+): Promise<string> {
+	// Extraction du texte brut depuis le fichier Word
+	const result = await mammoth.convertToHtml({ path: wordPath });
+	const htmlContent = result.value; // Contenu HTML extrait du fichier Word
 
-	// Promesse pour extraire le texte
-	const parsePDF = () =>
-		new Promise<string>((resolve, reject) => {
-			pdfParser.on("pdfParser_dataError", (errData: any) => {
-				reject(errData.parserError);
-			});
+	// Utilisation de Puppeteer pour générer un PDF à partir du contenu HTML
+	const browser = await puppeteer.launch();
+	const page = await browser.newPage();
+	await page.setContent(htmlContent);
+	const pdfPath = `${outputPath}/output.pdf`;
+	await page.pdf({ path: pdfPath, format: "A4" });
+	await browser.close();
 
-			pdfParser.on("pdfParser_dataReady", (pdfData: any) => {
-				const formattedText = formatText(pdfData);
-				resolve(formattedText);
-			});
+	unlink(wordPath, () => {});
 
-			pdfParser.parseBuffer(fileBuffer);
-		});
-
-	// Extraire le texte
-	const extractedText = await parsePDF();
-	return extractedText;
+	return pdfPath;
 }
 
-function formatText(pdfData: any): string {
-	let formattedText = "";
-	let lastTextBottom = -1;
-	let lastTextTop = -1; // Ajouter cette variable pour gérer la position du haut du texte
-	let pageCount = 1;
+export async function convertExcelToPdf(
+	excelPath: string,
+	outputPath: string
+): Promise<string> {
+	// Lecture du fichier Excel et conversion en une feuille HTML
+	const workbook = XLSX.readFile(excelPath);
+	const sheetName = workbook.SheetNames[0]; // Prend la première feuille
+	const sheet = workbook.Sheets[sheetName];
+	const htmlContent = XLSX.utils.sheet_to_html(sheet);
 
-	pdfData.Pages.forEach((page: any, pageIndex: number) => {
-		// Ajouter un titre pour la page
-		formattedText += `Page ${pageCount}\n`;
-		pageCount++;
+	// Utilisation de Puppeteer pour générer un PDF à partir du contenu HTML
+	const browser = await puppeteer.launch();
+	const page = await browser.newPage();
+	await page.setContent(htmlContent);
+	const pdfPath = `${outputPath}/output.pdf`;
+	await page.pdf({ path: pdfPath, format: "A4" });
+	await browser.close();
+	unlink(excelPath, () => {});
+	return pdfPath;
+}
 
-		page.Texts.forEach((text: any) => {
-			text.R.forEach((textRun: any) => {
-				const decodedText = decodeURIComponent(textRun.T)
-					.replace(/\s+/g, " ")
-					.trim();
+export async function convertTxtToPdf(
+	txtPath: string,
+	outputPath: string
+): Promise<string> {
+	// Lire le contenu du fichier TXT
+	const txtContent = fs.readFileSync(txtPath, "utf-8");
 
-				// Vérification de l'existence de BBox avant d'accéder à ses propriétés
-				if (
-					text.BBox &&
-					Array.isArray(text.BBox) &&
-					text.BBox.length > 3
-				) {
-					const currentTextBottom = text.BBox[3]; // Position Y du bas du texte
-					const currentTextTop = text.BBox[1]; // Position Y du haut du texte
-
-					// Si le texte est plus bas que le texte précédent, c'est une nouvelle ligne
-					if (
-						lastTextBottom !== -1 &&
-						currentTextTop < lastTextBottom - 5
-					) {
-						formattedText += "\n"; // Ajout d'un saut de ligne
-					}
-
-					// Ajouter le texte formaté
-					formattedText += decodedText;
-
-					// Mettre à jour la position du bas et du haut du texte
-					lastTextBottom = currentTextBottom;
-					lastTextTop = currentTextTop;
-				} else {
-					// Si BBox n'est pas valide, ajouter simplement le texte
-					formattedText += decodedText;
-				}
-			});
-		});
-
-		// Ajouter un saut de ligne entre les pages
-		formattedText += "\n";
-	});
-
-	return formattedText;
+	// Utilisation de Puppeteer pour générer un PDF à partir du contenu HTML
+	const browser = await puppeteer.launch();
+	const page = await browser.newPage();
+	await page.setContent(txtContent);
+	const pdfPath = `${outputPath}/output.pdf`;
+	await page.pdf({ path: pdfPath, format: "A4" });
+	await browser.close();
+	unlink(txtPath, () => {});
+	return pdfPath;
 }

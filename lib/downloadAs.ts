@@ -1,3 +1,4 @@
+import { cleanMarkdown } from "@/utils";
 import jsPDF from "jspdf";
 
 export const downloadAsPDF = (markdown: string, title: string) => {
@@ -32,7 +33,7 @@ export const downloadAsPDF = (markdown: string, title: string) => {
 		y += 7;
 	});
 
-	pdf.save(`${title ? title : "Résumé"}.pdf`);
+	pdf.save(`${title ? cleanMarkdown(title) : "Résumé"}.pdf`);
 	return {
 		title: "Résumé enregistré",
 		description: "Résumé enregistré",

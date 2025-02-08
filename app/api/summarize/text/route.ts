@@ -1,8 +1,9 @@
 import { generateContent } from "@/actions/gemini";
+import { summarizeText } from "@/actions/summarizer";
 import { NextRequest, NextResponse } from "next/server";
 
 const textContentContext =
-	"Analyse et résume le texte brut suivant en identifiant les points clés, les informations principales et les idées importantes.";
+	"Analyse et résume le texte brut, identifiant les points clés, les informations principales et les idées importantes.";
 
 export async function POST(req: NextRequest) {
 	try {
@@ -14,11 +15,12 @@ export async function POST(req: NextRequest) {
 				{ status: 400 }
 			);
 		}
-		const { content, title } = await generateContent(
+		const text = await summarizeText(
 			textContent,
 			textContentContext,
 			niveau
 		);
+		const { content, title } = await generateContent(text);
 
 		return NextResponse.json({
 			message: "Texte uploadé avec succès",
