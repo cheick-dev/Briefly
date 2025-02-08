@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 
+import { saveFileLocally } from "@/lib/saveFile";
 import fs, { unlink } from "fs/promises";
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
@@ -50,11 +51,8 @@ export async function POST(req: NextRequest) {
 
 		// Génère un nom unique pour le fichier
 		const fileName = `${Date.now()}-${file.name}`;
-		const filePath = path.join(UPLOADS_DIR, fileName);
-
-		// Lis le contenu du fichier et l'écrit sur le serveur
-		const buffer = Buffer.from(await file.arrayBuffer());
-		await fs.writeFile(filePath, buffer as unknown as string);
+		const fileBuffer = Buffer.from(await file.arrayBuffer());
+		const filePath = await saveFileLocally(fileName, fileBuffer);
 
 		// Extraction de l'extension du fichier
 		const fileExtension = path.extname(file.name).toLowerCase();
