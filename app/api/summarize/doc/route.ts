@@ -22,7 +22,7 @@ const ALLOWED_MIME_TYPES = [
 	"application/vnd.openxmlformats-officedocument.wordprocessingml.document", // DOCX
 ];
 
-const UPLOADS_DIR = path.join(process.cwd(), "uploads");
+const UPLOADS_DIR = "/tmp/uploads";
 
 export async function POST(req: NextRequest) {
 	try {
