@@ -1,6 +1,7 @@
 import * as XLSX from "xlsx";
 import mammoth from "mammoth";
-import puppeteer from "puppeteer";
+// import puppeteer from "puppeteer";
+import { chromium } from "playwright";
 import fs, { unlink } from "fs";
 
 export async function convertWordToPdf(
@@ -12,7 +13,7 @@ export async function convertWordToPdf(
 	const htmlContent = result.value; // Contenu HTML extrait du fichier Word
 
 	// Utilisation de Puppeteer pour générer un PDF à partir du contenu HTML
-	const browser = await puppeteer.launch();
+	const browser = await chromium.launch();
 	const page = await browser.newPage();
 	await page.setContent(htmlContent);
 	const pdfPath = `${outputPath}/output.pdf`;
@@ -35,7 +36,7 @@ export async function convertExcelToPdf(
 	const htmlContent = XLSX.utils.sheet_to_html(sheet);
 
 	// Utilisation de Puppeteer pour générer un PDF à partir du contenu HTML
-	const browser = await puppeteer.launch();
+	const browser = await chromium.launch();
 	const page = await browser.newPage();
 	await page.setContent(htmlContent);
 	const pdfPath = `${outputPath}/output.pdf`;
@@ -53,7 +54,7 @@ export async function convertTxtToPdf(
 	const txtContent = fs.readFileSync(txtPath, "utf-8");
 
 	// Utilisation de Puppeteer pour générer un PDF à partir du contenu HTML
-	const browser = await puppeteer.launch();
+	const browser = await chromium.launch();
 	const page = await browser.newPage();
 	await page.setContent(txtContent);
 	const pdfPath = `${outputPath}/output.pdf`;
