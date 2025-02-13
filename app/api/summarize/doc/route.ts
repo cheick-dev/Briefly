@@ -1,5 +1,8 @@
 export const dynamic = "force-dynamic";
 
+import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
+import { cookies } from "next/headers";
+
 import { saveFileLocally } from "@/lib/saveFile";
 import fs, { unlink } from "fs/promises";
 import { NextRequest, NextResponse } from "next/server";
@@ -12,6 +15,7 @@ import {
 } from "@/actions";
 import { generateContent } from "@/actions/gemini";
 import { summarizePdf } from "@/actions/summarizer";
+import { storage } from "@/lib/appwrite";
 
 const docContext =
 	"Analyse et résume le texte provenant d'un document, identifiant les points clés, les informations principales et les idées importantes.";
@@ -23,12 +27,14 @@ const ALLOWED_MIME_TYPES = [
 	"application/vnd.openxmlformats-officedocument.wordprocessingml.document", // DOCX
 ];
 
-const UPLOADS_DIR = "/tmp/uploads";
+const UPLOADS_DIR = "/tmp";
 
 export async function POST(req: NextRequest) {
 	try {
 		// Vérifie si le dossier "uploads" existe, sinon le créer
 		await fs.mkdir(UPLOADS_DIR, { recursive: true });
+		// await fs.mkdir(uploadDir, { recursive: true });
+		// const supabase = createRouteHandlerClient({ cookies });
 
 		const formData = await req.formData();
 		const file = formData.get("file") as File | null;
@@ -56,6 +62,24 @@ export async function POST(req: NextRequest) {
 
 		// Extraction de l'extension du fichier
 		const fileExtension = path.extname(file.name).toLowerCase();
+
+		// const uploadedFile = await storage.createFile(
+		// 	process.env.APPWRITE_BUCKET_ID!,
+		// 	"unique()", // ID auto-généré
+		// 	file
+		// );
+
+		// Générer l'URL de téléchargement du fichier
+		// const filePath = `${process.env.APPWRITE_ENDPOINT}/storage/buckets/${process.env.APPWRITE_BUCKET_ID}/files/${uploadedFile.$id}/view?project=${process.env.APPWRITE_PROJECT_ID}`;
+
+		// const result = await storage.getFile(
+		// 	process.env.APPWRITE_BUCKET_ID!, // bucketId
+		// 	// uploadedFile.$id // fileId
+		// 	"67ab21ece3eb3374558d"
+		// );
+		// console.log(result);
+
+		// return NextResponse.json({ url: filePath });
 
 		let extractedText: string | null = null;
 
@@ -97,7 +121,10 @@ export async function POST(req: NextRequest) {
 
 		if (extractedText && extractedText.length > 0) {
 			const { content, title } = await generateContent(extractedText);
-			await unlink(`${UPLOADS_DIR}/output.pdf`);
+			// await storage.deleteFile(
+			// 	process.env.APPWRITE_BUCKET_ID!, // bucketId
+			// 	uploadedFile.$id // fileId
+			// );
 
 			return NextResponse.json({
 				message: "Fichier uploadé avec succès",
