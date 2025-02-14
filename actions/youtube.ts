@@ -1,7 +1,12 @@
+import { extractVideoId } from "@/utils";
 import { YoutubeTranscript } from "youtube-transcript";
 
 export async function getVideoTranscription(videoUrl: string) {
 	try {
+		const videoId = extractVideoId(videoUrl);
+		if (!videoId) {
+			throw new Error("Invalid video URL");
+		}
 		const yt = await YoutubeTranscript.fetchTranscript(videoUrl);
 		const transcript = yt.map((item) => item.text).join(" ");
 
