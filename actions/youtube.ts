@@ -7,7 +7,7 @@ export async function getVideoTranscription(videoUrl: string) {
 		if (!videoId) {
 			throw new Error("Invalid video URL");
 		}
-		const yt = await YoutubeTranscript.fetchTranscript(videoUrl);
+		const yt = await YoutubeTranscript.fetchTranscript(videoId);
 		const transcript = yt.map((item) => item.text).join(" ");
 
 		return transcript;
