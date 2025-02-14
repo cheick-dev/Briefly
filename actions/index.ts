@@ -1,65 +1,37 @@
-import * as XLSX from "xlsx";
 import mammoth from "mammoth";
-// import puppeteer from "puppeteer";
-import { chromium } from "playwright";
-import fs, { unlink } from "fs";
+import * as XLSX from "xlsx";
+import { downloadAsPDF } from "@/lib/downloadAs";
 
-export async function convertWordToPdf(
-	wordPath: string,
-	outputPath: string
-): Promise<string> {
-	// Extraction du texte brut depuis le fichier Word
-	const result = await mammoth.convertToHtml({ path: wordPath });
-	const htmlContent = result.value; // Contenu HTML extrait du fichier Word
+export const convertToPdf = async (
+	file: Blob,
+	fileType: string
+): Promise<File> => {
+	if (fileType.includes("wordprocessingml.document")) {
+		const arrayBuffer = await file.arrayBuffer();
+		const buffer = Buffer.from(arrayBuffer);
+		const text = (await mammoth.extractRawText({ buffer })).value;
+		const pdf = downloadAsPDF(text);
+		return new File([pdf], "converted.pdf", { type: "application/pdf" });
+		// new Blob([text], { type: "application/pdf" });
+	}
 
-	// Utilisation de Puppeteer pour générer un PDF à partir du contenu HTML
-	const browser = await chromium.launch();
-	const page = await browser.newPage();
-	await page.setContent(htmlContent);
-	const pdfPath = `${outputPath}/output.pdf`;
-	await page.pdf({ path: pdfPath, format: "A4" });
-	await browser.close();
+	if (fileType.includes("spreadsheetml.sheet")) {
+		const arrayBuffer = await file.arrayBuffer();
+		const workbook = XLSX.read(arrayBuffer, { type: "array" });
+		const sheet = XLSX.utils.sheet_to_csv(
+			workbook.Sheets[workbook.SheetNames[0]]
+		);
+		const pdf = downloadAsPDF(sheet);
+		return new File([pdf], "converted.pdf", { type: "application/pdf" });
+		// new Blob([sheet], { type: "application/pdf" });
+	}
 
-	unlink(wordPath, () => {});
-
-	return pdfPath;
-}
-
-export async function convertExcelToPdf(
-	excelPath: string,
-	outputPath: string
-): Promise<string> {
-	// Lecture du fichier Excel et conversion en une feuille HTML
-	const workbook = XLSX.readFile(excelPath);
-	const sheetName = workbook.SheetNames[0]; // Prend la première feuille
-	const sheet = workbook.Sheets[sheetName];
-	const htmlContent = XLSX.utils.sheet_to_html(sheet);
-
-	// Utilisation de Puppeteer pour générer un PDF à partir du contenu HTML
-	const browser = await chromium.launch();
-	const page = await browser.newPage();
-	await page.setContent(htmlContent);
-	const pdfPath = `${outputPath}/output.pdf`;
-	await page.pdf({ path: pdfPath, format: "A4" });
-	await browser.close();
-	unlink(excelPath, () => {});
-	return pdfPath;
-}
-
-export async function convertTxtToPdf(
-	txtPath: string,
-	outputPath: string
-): Promise<string> {
-	// Lire le contenu du fichier TXT
-	const txtContent = fs.readFileSync(txtPath, "utf-8");
-
-	// Utilisation de Puppeteer pour générer un PDF à partir du contenu HTML
-	const browser = await chromium.launch();
-	const page = await browser.newPage();
-	await page.setContent(txtContent);
-	const pdfPath = `${outputPath}/output.pdf`;
-	await page.pdf({ path: pdfPath, format: "A4" });
-	await browser.close();
-	unlink(txtPath, () => {});
-	return pdfPath;
-}
+	if (fileType.includes("text/plain")) {
+		const pdf = downloadAsPDF(await file.text());
+		return new File([pdf], "converted.pdf", {
+			type: "application/pdf",
+		});
+	}
+	const pdf = downloadAsPDF(await file.text());
+	return new File([pdf], "converted.pdf", { type: "application/pdf" });
+};

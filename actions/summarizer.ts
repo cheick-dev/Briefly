@@ -1,6 +1,6 @@
 import { google } from "@ai-sdk/google";
 import { generateText } from "ai";
-import fs from "fs";
+// import fs from "fs";
 
 export const summarizePdf = async (
 	filePath: string,
@@ -29,7 +29,7 @@ export const summarizePdf = async (
 					},
 					{
 						type: "file",
-						data: fs.readFileSync(filePath),
+						data: filePath,
 						mimeType: `application/pdf`,
 					},
 				],

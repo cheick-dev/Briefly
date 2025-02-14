@@ -1,7 +1,7 @@
 import { cleanMarkdown } from "@/utils";
 import jsPDF from "jspdf";
 
-export const downloadAsPDF = (markdown: string, title: string) => {
+export const downloadAsPDF = (markdown: string, title?: string) => {
 	const pdf = new jsPDF({
 		orientation: "p", // Portrait
 		unit: "mm",
@@ -14,7 +14,7 @@ export const downloadAsPDF = (markdown: string, title: string) => {
 	// Ajout du titre
 	pdf.setFont("helvetica", "bold");
 	pdf.setFontSize(18);
-	pdf.text(title, marginLeft, marginTop);
+	pdf.text(title?.length ? title : "", marginLeft, marginTop);
 
 	// Ajustement du texte principal
 	pdf.setFont("helvetica", "normal");
@@ -34,10 +34,7 @@ export const downloadAsPDF = (markdown: string, title: string) => {
 	});
 
 	pdf.save(`${title ? cleanMarkdown(title) : "Résumé"}.pdf`);
-	return {
-		title: "Résumé enregistré",
-		description: "Résumé enregistré",
-	};
+	return pdf.output("arraybuffer");
 };
 export const copyToClipboard = async (markdown: string) => {
 	try {
