@@ -16,12 +16,15 @@ export async function POST(req: NextRequest) {
 				{ status: 400 }
 			);
 		}
+		const transcription = await getVideoTranscription(link);
+		if (!transcription) {
+			return NextResponse.json(
+				{ error: "Impossible de récupérer la transcription" },
+				{ status: 400 }
+			);
+		}
 
-		const text = await summarizeText(
-			await getVideoTranscription(link),
-			linkContext,
-			niveau
-		);
+		const text = await summarizeText(transcription, linkContext, niveau);
 		const { content, title } = await generateContent(text);
 
 		return NextResponse.json({
